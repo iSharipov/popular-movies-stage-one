@@ -4,28 +4,62 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
+import java.io.IOException;
 import java.net.URL;
 
+import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.MovieResult;
+
+import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.JsonUtils.parseMovieDBJson;
+import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.NetworkUtils.getResponseFromHttpUrl;
+
 public class MainActivity extends AppCompatActivity {
+
+    private MovieResult movieResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        makeMovieDbSearchQuery();
+
     }
 
-    private static class TheMovieDbQueryTask extends AsyncTask<URL, Void, String> {
+    private void makeMovieDbSearchQuery() {
+        try {
+            URL movieDbSearchUrl = new URL("http://api.themoviedb.org/3/movie/top_rated?api_key=895d45558acb3238127ec72b182ef588");
+            new TheMovieDbQueryTask().execute(movieDbSearchUrl);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private class TheMovieDbQueryTask extends AsyncTask<URL, Void, String> {
 
         @Override
         protected String doInBackground(URL... urls) {
             URL searchUrl = urls[0];
-
-            return null;
+            String theMovieDbSearchResult = null;
+            try {
+                theMovieDbSearchResult = getResponseFromHttpUrl(searchUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return theMovieDbSearchResult;
         }
 
         @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
+        protected void onPostExecute(String theMovieDbSearchResult) {
+            if (theMovieDbSearchResult != null && !theMovieDbSearchResult.isEmpty()) {
+                setMovieResult(parseMovieDBJson(theMovieDbSearchResult));
+            }
         }
+    }
+
+    public MovieResult getMovieResult() {
+        return movieResult;
+    }
+
+    public void setMovieResult(MovieResult movieResult) {
+        this.movieResult = movieResult;
     }
 }
