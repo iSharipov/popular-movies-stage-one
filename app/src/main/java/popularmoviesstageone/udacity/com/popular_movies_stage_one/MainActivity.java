@@ -3,10 +3,16 @@ package popularmoviesstageone.udacity.com.popular_movies_stage_one;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.GridView;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
+import popularmoviesstageone.udacity.com.popular_movies_stage_one.adapter.ImageGridViewAdapter;
+import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.GridItem;
+import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.Movie;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.MovieResult;
 
 import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.JsonUtils.parseMovieDBJson;
@@ -21,7 +27,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         makeMovieDbSearchQuery();
-
     }
 
     private void makeMovieDbSearchQuery() {
@@ -51,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String theMovieDbSearchResult) {
             if (theMovieDbSearchResult != null && !theMovieDbSearchResult.isEmpty()) {
                 setMovieResult(parseMovieDBJson(theMovieDbSearchResult));
+                populateUI();
             }
         }
     }
@@ -61,5 +67,21 @@ public class MainActivity extends AppCompatActivity {
 
     public void setMovieResult(MovieResult movieResult) {
         this.movieResult = movieResult;
+    }
+
+    private void populateUI() {
+        GridView gridView = findViewById(R.id.gridView);
+
+        MovieResult movieResult = getMovieResult();
+        List<Movie> movies = movieResult.getResults();
+        String theMovieDbImgUrl = getString(R.string.themoviedb_img_url);
+        theMovieDbImgUrl += "w185";
+        List<GridItem> gridItems = new ArrayList<>();
+        for (Movie movie : movies) {
+            String posterPath = movie.getPosterPath();
+            gridItems.add(new GridItem(theMovieDbImgUrl + posterPath, movie.getId()));
+        }
+        ImageGridViewAdapter adapter = new ImageGridViewAdapter(this, R.layout.grid_item_layout, gridItems);
+        gridView.setAdapter(adapter);
     }
 }
