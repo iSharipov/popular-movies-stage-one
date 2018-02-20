@@ -10,6 +10,7 @@
     <string name="online">You are Online!</string>
     <string name="offline">You are Offline</string>
     <string name="offline_button">You are offline, pls Press Me</string>
+    <string name="lost_connection">Lost Connection</string>
 
     <string-array name="entries">
         <item>Popular</item>

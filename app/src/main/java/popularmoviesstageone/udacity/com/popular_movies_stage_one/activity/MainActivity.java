@@ -1,7 +1,12 @@
 package popularmoviesstageone.udacity.com.popular_movies_stage_one.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -11,7 +16,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.LinearLayout;
@@ -23,6 +27,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import popularmoviesstageone.udacity.com.popular_movies_stage_one.GridViewItemClickListener;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.R;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.adapter.ImageGridViewAdapter;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.GridItem;
@@ -30,7 +35,6 @@ import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.Movie;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.MovieResult;
 
 import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.JsonUtils.parseMovieDBJson;
-import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.NetworkUtils.checkNetworkConnection;
 import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.NetworkUtils.getResponseFromHttpUrl;
 
 public class MainActivity extends AppCompatActivity {
@@ -38,27 +42,63 @@ public class MainActivity extends AppCompatActivity {
     private MovieResult movieResult;
     private String sortType;
     private ProgressBar progressBar;
+    private NetworkReceiver networkReceiver = new NetworkReceiver();
 
+    private static boolean wifiConnected = false;
+    private static boolean mobileConnected = false;
+    public static boolean refreshDisplay = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         progressBar = findViewById(R.id.pb_loading_indicator);
-        if (checkNetworkConnection(this)) {
-            loadSortMovieTypeFromSharedPreferences();
+        networkReceiver = new NetworkReceiver();
+        this.registerReceiver(networkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        loadSortMovieTypeFromSharedPreferences();
+        updateConnectedFlags();
+        if (refreshDisplay) {
             makeMovieDbSearchQuery(getSortType());
         } else {
             addButton();
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (networkReceiver != null) {
+            this.unregisterReceiver(networkReceiver);
+        }
+    }
+
+    public void updateConnectedFlags() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+            wifiConnected = networkInfo.getType() == ConnectivityManager.TYPE_WIFI;
+            mobileConnected = networkInfo.getType() == ConnectivityManager.TYPE_MOBILE;
+        } else {
+            wifiConnected = false;
+            mobileConnected = false;
+        }
+    }
+
     private void makeMovieDbSearchQuery(String sortType) {
-        try {
-            URL movieDbSearchUrl = new URL("http://api.themoviedb.org/3/movie" + sortType + "?api_key=895d45558acb3238127ec72b182ef588");
-            new TheMovieDbQueryTask().execute(movieDbSearchUrl);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (wifiConnected || mobileConnected) {
+            try {
+                URL movieDbSearchUrl = new URL("http://api.themoviedb.org/3/movie" + sortType + "?api_key=895d45558acb3238127ec72b182ef588");
+                new TheMovieDbQueryTask().execute(movieDbSearchUrl);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            addButton();
         }
     }
 
@@ -92,6 +132,22 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private class NetworkReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = cm.getActiveNetworkInfo();
+
+            if (networkInfo != null && networkInfo.isConnectedOrConnecting()) {
+                refreshDisplay = true;
+            } else {
+                refreshDisplay = false;
+                Toast.makeText(context, R.string.lost_connection, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     private void populateUI() {
         GridView gridView = findViewById(R.id.gridView);
 
@@ -106,27 +162,7 @@ public class MainActivity extends AppCompatActivity {
         }
         ImageGridViewAdapter adapter = new ImageGridViewAdapter(this, R.layout.grid_item_layout, gridItems);
         gridView.setAdapter(adapter);
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                GridItem gridItem = (GridItem) parent.getItemAtPosition(position);
-                Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-                Long movieId = gridItem.getMovieId();
-                Movie result = null;
-                for (Movie movie : movies) {
-                    if (movie.getId().equals(movieId)) {
-                        result = movie;
-                        break;
-                    }
-                }
-                if (result != null) {
-                    intent.putExtra("movie", result);
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(MainActivity.this, "Movie not found", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
+        gridView.setOnItemClickListener(new GridViewItemClickListener(this, movies));
     }
 
     @Override
