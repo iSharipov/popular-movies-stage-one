@@ -1,4 +1,4 @@
-package popularmoviesstageone.udacity.com.popular_movies_stage_one;
+package popularmoviesstageone.udacity.com.popular_movies_stage_one.activity;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -9,6 +9,8 @@ import android.support.v7.preference.ListPreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.PreferenceScreen;
+
+import popularmoviesstageone.udacity.com.popular_movies_stage_one.R;
 
 /**
  * Created by ilias on 19.02.2018.

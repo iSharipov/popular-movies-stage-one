@@ -1,4 +1,4 @@
-package popularmoviesstageone.udacity.com.popular_movies_stage_one;
+package popularmoviesstageone.udacity.com.popular_movies_stage_one.activity;
 
 import android.app.Activity;
 

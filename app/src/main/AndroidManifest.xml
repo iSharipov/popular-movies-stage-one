@@ -15,21 +15,21 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".MainActivity">
+        <activity android:name=".activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DetailActivity" />
+        <activity android:name=".activity.DetailActivity" />
         <activity
-            android:name=".SettingsActivity"
+            android:name=".activity.SettingsActivity"
             android:label="@string/movies_settings"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value=".activity.MainActivity" />
         </activity>
     </application>
 

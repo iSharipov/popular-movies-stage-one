@@ -1,4 +1,4 @@
-package popularmoviesstageone.udacity.com.popular_movies_stage_one;
+package popularmoviesstageone.udacity.com.popular_movies_stage_one.activity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,6 +16,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import popularmoviesstageone.udacity.com.popular_movies_stage_one.R;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.adapter.ImageGridViewAdapter;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.GridItem;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.Movie;
