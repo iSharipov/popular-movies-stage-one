@@ -110,8 +110,6 @@ public class MainActivity extends AppCompatActivity {
         setSortType(sortType);
     }
 
-
-
     public MovieResult getMovieResult() {
         return movieResult;
     }
