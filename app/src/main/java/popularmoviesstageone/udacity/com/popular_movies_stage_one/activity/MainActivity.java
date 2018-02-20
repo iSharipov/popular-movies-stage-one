@@ -11,9 +11,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.net.URL;
@@ -34,12 +37,14 @@ public class MainActivity extends AppCompatActivity {
 
     private MovieResult movieResult;
     private String sortType;
-    private Boolean isCheckConnectivity;
+    private ProgressBar progressBar;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        progressBar = findViewById(R.id.pb_loading_indicator);
         if (checkNetworkConnection(this)) {
             loadSortMovieTypeFromSharedPreferences();
             makeMovieDbSearchQuery(getSortType());
@@ -72,11 +77,18 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
         protected void onPostExecute(String theMovieDbSearchResult) {
             if (theMovieDbSearchResult != null && !theMovieDbSearchResult.isEmpty()) {
                 setMovieResult(parseMovieDBJson(theMovieDbSearchResult));
                 populateUI();
             }
+            progressBar.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -84,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         GridView gridView = findViewById(R.id.gridView);
 
         MovieResult movieResult = getMovieResult();
-        List<Movie> movies = movieResult.getResults();
+        final List<Movie> movies = movieResult.getResults();
         String theMovieDbImgUrl = getString(R.string.themoviedb_img_url);
         theMovieDbImgUrl += "w185";
         List<GridItem> gridItems = new ArrayList<>();
@@ -94,6 +106,27 @@ public class MainActivity extends AppCompatActivity {
         }
         ImageGridViewAdapter adapter = new ImageGridViewAdapter(this, R.layout.grid_item_layout, gridItems);
         gridView.setAdapter(adapter);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                GridItem gridItem = (GridItem) parent.getItemAtPosition(position);
+                Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+                Long movieId = gridItem.getMovieId();
+                Movie result = null;
+                for (Movie movie : movies) {
+                    if (movie.getId().equals(movieId)) {
+                        result = movie;
+                        break;
+                    }
+                }
+                if (result != null) {
+                    intent.putExtra("movie", result);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(MainActivity.this, "Movie not found", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 
     @Override
@@ -154,13 +187,5 @@ public class MainActivity extends AppCompatActivity {
 
     public void setSortType(String sortType) {
         this.sortType = sortType;
-    }
-
-    public Boolean getCheckConnectivity() {
-        return isCheckConnectivity;
-    }
-
-    public void setCheckConnectivity(Boolean checkConnectivity) {
-        isCheckConnectivity = checkConnectivity;
     }
 }
