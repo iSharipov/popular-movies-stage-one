@@ -6,10 +6,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.GridView;
+import android.widget.LinearLayout;
 
 import java.io.IOException;
 import java.net.URL;
@@ -23,19 +27,25 @@ import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.Movie;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.MovieResult;
 
 import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.JsonUtils.parseMovieDBJson;
+import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.NetworkUtils.checkNetworkConnection;
 import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.NetworkUtils.getResponseFromHttpUrl;
 
 public class MainActivity extends AppCompatActivity {
 
     private MovieResult movieResult;
     private String sortType;
+    private Boolean isCheckConnectivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        loadSortMovieTypeFromSharedPreferences();
-        makeMovieDbSearchQuery(getSortType());
+        if (checkNetworkConnection(this)) {
+            loadSortMovieTypeFromSharedPreferences();
+            makeMovieDbSearchQuery(getSortType());
+        } else {
+            addButton();
+        }
     }
 
     private void makeMovieDbSearchQuery(String sortType) {
@@ -93,6 +103,25 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    public void addButton() {
+        LinearLayout linearLayout = new LinearLayout(this);
+        Button button = new Button(this);
+        button.setText(R.string.offline_button);
+        button.setGravity(Gravity.CENTER);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+                startActivity(getIntent());
+            }
+        });
+
+        linearLayout.addView(button);
+
+        this.setContentView(linearLayout, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -125,5 +154,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void setSortType(String sortType) {
         this.sortType = sortType;
+    }
+
+    public Boolean getCheckConnectivity() {
+        return isCheckConnectivity;
+    }
+
+    public void setCheckConnectivity(Boolean checkConnectivity) {
+        isCheckConnectivity = checkConnectivity;
     }
 }
