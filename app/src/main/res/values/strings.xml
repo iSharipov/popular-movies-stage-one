@@ -1,23 +1,28 @@
 <resources>
-    <string name="app_name">popular-movies-stage-one</string>
+    <string name="app_name">Popular Movies</string>
     <string name="api_key">895d45558acb3238127ec72b182ef588</string>
-    <string name="themoviedb_url">http://api.themoviedb.org/3/</string>
+    <string name="themoviedb_url">http://api.themoviedb.org/3/movie</string>
     <string name="themoviedb_img_url">http://image.tmdb.org/t/p/</string>
     <string name="movies_settings">Settings</string>
     <string name="action_settings">Settings</string>
-    <string name="pref_sort_type_default">/popular</string>
+    <string name="pref_sort_type_default">popular</string>
     <string name="pref_sort_type_key">sort_type</string>
     <string name="online">You are Online!</string>
     <string name="offline">You are Offline</string>
     <string name="offline_button">You are offline, pls Press Me</string>
     <string name="lost_connection">Lost Connection</string>
+    <string name="poster">poster</string>
+    <string name="movie_title">Title:</string>
+    <string name="plot_synopsis">Plot synopsis:</string>
+    <string name="user_rating">User Rating:</string>
+    <string name="release_date">Release Date:</string>
 
     <string-array name="entries">
         <item>Popular</item>
         <item>Top Rated</item>
     </string-array>
     <string-array name="entry_values">
-        <item>/popular</item>
-        <item>/top_rated</item>
+        <item>popular</item>
+        <item>top_rated</item>
     </string-array>
 </resources>

@@ -11,14 +11,12 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.GridView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -35,6 +33,7 @@ import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.Movie;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.MovieResult;
 
 import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.JsonUtils.parseMovieDBJson;
+import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.NetworkUtils.buildBaseMovieDbdUrl;
 import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.NetworkUtils.getResponseFromHttpUrl;
 
 public class MainActivity extends AppCompatActivity {
@@ -42,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private MovieResult movieResult;
     private String sortType;
     private ProgressBar progressBar;
+    private GridView gridView;
     private NetworkReceiver networkReceiver = new NetworkReceiver();
 
     private static boolean wifiConnected = false;
@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        gridView = findViewById(R.id.gridView);
         progressBar = findViewById(R.id.pb_loading_indicator);
         networkReceiver = new NetworkReceiver();
         this.registerReceiver(networkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
@@ -91,12 +92,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void makeMovieDbSearchQuery(String sortType) {
         if (wifiConnected || mobileConnected) {
-            try {
-                URL movieDbSearchUrl = new URL("http://api.themoviedb.org/3/movie" + sortType + "?api_key=895d45558acb3238127ec72b182ef588");
-                new TheMovieDbQueryTask().execute(movieDbSearchUrl);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            URL movieDbSearchUrl = buildBaseMovieDbdUrl(getString(R.string.themoviedb_url), sortType, getString(R.string.api_key));
+            findViewById(R.id.button_1).setVisibility(View.INVISIBLE);
+            new TheMovieDbQueryTask().execute(movieDbSearchUrl);
         } else {
             addButton();
         }
@@ -149,8 +147,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void populateUI() {
-        GridView gridView = findViewById(R.id.gridView);
-
         MovieResult movieResult = getMovieResult();
         final List<Movie> movies = movieResult.getResults();
         String theMovieDbImgUrl = getString(R.string.themoviedb_img_url);
@@ -173,21 +169,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void addButton() {
-        LinearLayout linearLayout = new LinearLayout(this);
-        Button button = new Button(this);
-        button.setText(R.string.offline_button);
-        button.setGravity(Gravity.CENTER);
-        button.setOnClickListener(new View.OnClickListener() {
+        Button offlineButton = findViewById(R.id.button_1);
+        offlineButton.setVisibility(View.VISIBLE);
+        offlineButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                updateConnectedFlags();
                 makeMovieDbSearchQuery(getSortType());
             }
         });
-
-        linearLayout.addView(button);
-
-        this.setContentView(linearLayout, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
     }
 
     @Override

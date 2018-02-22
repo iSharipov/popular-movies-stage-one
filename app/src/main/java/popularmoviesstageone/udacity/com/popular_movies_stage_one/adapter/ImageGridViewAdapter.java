@@ -51,7 +51,7 @@ public class ImageGridViewAdapter extends ArrayAdapter<GridItem> {
             holder = (ViewHolder) row.getTag();
         }
         GridItem gridItem = data.get(position);
-        Picasso.with(context).load(gridItem.getUrl()).into(holder.imageView);
+        Picasso.with(context).load(gridItem.getUrl().toString()).into(holder.imageView);
         return row;
     }
 

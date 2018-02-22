@@ -1,22 +1,22 @@
 package popularmoviesstageone.udacity.com.popular_movies_stage_one.utils;
 
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.net.Uri;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
-
-import static android.content.Context.CONNECTIVITY_SERVICE;
 
 /**
  * Created by ilias on 18.02.2018.
  */
 
 public class NetworkUtils {
+
+    private static final String API_KEY = "api_key";
+
     public static String getResponseFromHttpUrl(URL url) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try {
@@ -34,8 +34,19 @@ public class NetworkUtils {
         }
     }
 
-    public static boolean checkNetworkConnection(Context context) {
-        NetworkInfo networkInfo = ((ConnectivityManager) context.getSystemService(CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-        return !(networkInfo == null || !networkInfo.isConnected());
+    public static URL buildBaseMovieDbdUrl(String movieBaseUrl, String sortType, String apiKey) {
+        Uri builtUri = Uri.parse(movieBaseUrl).buildUpon()
+                .appendPath(sortType)
+                .appendQueryParameter(API_KEY, apiKey)
+                .build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        return url;
     }
 }
