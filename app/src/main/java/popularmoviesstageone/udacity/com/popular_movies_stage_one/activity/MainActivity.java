@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
@@ -20,7 +19,6 @@ import android.widget.GridView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,13 +26,14 @@ import java.util.List;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.GridViewItemClickListener;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.R;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.adapter.ImageGridViewAdapter;
+import popularmoviesstageone.udacity.com.popular_movies_stage_one.async.AsyncTaskCompleteListener;
+import popularmoviesstageone.udacity.com.popular_movies_stage_one.async.TheMovieDbQueryTask;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.GridItem;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.Movie;
 import popularmoviesstageone.udacity.com.popular_movies_stage_one.model.MovieResult;
 
 import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.JsonUtils.parseMovieDBJson;
 import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.NetworkUtils.buildBaseMovieDbdUrl;
-import static popularmoviesstageone.udacity.com.popular_movies_stage_one.utils.NetworkUtils.getResponseFromHttpUrl;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -94,39 +93,25 @@ public class MainActivity extends AppCompatActivity {
         if (wifiConnected || mobileConnected) {
             URL movieDbSearchUrl = buildBaseMovieDbdUrl(getString(R.string.themoviedb_url), sortType, getString(R.string.api_key));
             findViewById(R.id.button_1).setVisibility(View.INVISIBLE);
-            new TheMovieDbQueryTask().execute(movieDbSearchUrl);
+            new TheMovieDbQueryTask(new TheMovieDbQueryCompleteListener()).execute(movieDbSearchUrl);
         } else {
             addButton();
         }
     }
 
-    private class TheMovieDbQueryTask extends AsyncTask<URL, Void, String> {
-
+    private class TheMovieDbQueryCompleteListener implements AsyncTaskCompleteListener<String> {
         @Override
-        protected String doInBackground(URL... urls) {
-            URL searchUrl = urls[0];
-            String theMovieDbSearchResult = null;
-            try {
-                theMovieDbSearchResult = getResponseFromHttpUrl(searchUrl);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return theMovieDbSearchResult;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            progressBar.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected void onPostExecute(String theMovieDbSearchResult) {
+        public void onTaskComplete(String theMovieDbSearchResult) {
             if (theMovieDbSearchResult != null && !theMovieDbSearchResult.isEmpty()) {
                 setMovieResult(parseMovieDBJson(theMovieDbSearchResult));
                 populateUI();
             }
             progressBar.setVisibility(View.INVISIBLE);
+        }
+
+        @Override
+        public void onPreExecute() {
+            progressBar.setVisibility(View.VISIBLE);
         }
     }
 
